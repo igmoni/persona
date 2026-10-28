@@ -66,8 +66,8 @@ const NotFound = () => {
         </h1>
 
         <p className="mt-7 max-w-sm text-sm leading-7 text-white/50 sm:text-base">
-          Looks like this page doesn't belong to anyone. Let's get you back to
-          where you belong.
+          Looks like this page doesn&apos;t belong to anyone. Let&apos;s get you
+          back to where you belong.
         </p>
 
         {/* Home button */}

@@ -1,11 +1,10 @@
-
 const page = () => {
   return (
     <main className="relative flex min-h-screen flex-col overflow-hidden bg-[#080808] text-white">
       {/* Background glow */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-[-200px] h-[400px] w-[600px] -translate-x-1/2 rounded-full bg-white/[0.04] blur-[120px]"
+        className="pointer-events-none absolute top-[-200px] left-1/2 h-[400px] w-[600px] -translate-x-1/2 rounded-full bg-white/[0.04] blur-[120px]"
       />
 
       {/* Main content */}
@@ -59,7 +58,7 @@ const page = () => {
         </div>
 
         {/* Heading */}
-        <h1 className="max-w-4xl text-5xl font-medium leading-[1.08] tracking-[-0.06em] sm:text-7xl md:text-8xl">
+        <h1 className="max-w-4xl text-5xl leading-[1.08] font-medium tracking-[-0.06em] sm:text-7xl md:text-8xl">
           Meet the person
           <br />
           behind the <span className="text-white/40">pixels.</span>
@@ -67,9 +66,8 @@ const page = () => {
 
         {/* Description */}
         <p className="mt-7 max-w-lg text-base leading-7 text-white/50 sm:text-lg sm:leading-8">
-          Your work deserves more than a link. Persona is a new way to
-          present who you are, what you do, and the work that speaks for
-          itself.
+          Your work deserves more than a link. Persona is a new way to present
+          who you are, what you do, and the work that speaks for itself.
         </p>
 
         {/* Coming soon */}
@@ -81,7 +79,7 @@ const page = () => {
         </div>
 
         {/* Bottom decorative element */}
-        <div className="mt-20 flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] text-white/25">
+        <div className="mt-20 flex items-center gap-3 text-[10px] tracking-[0.3em] text-white/25 uppercase">
           <span className="h-px w-8 bg-white/15" />
           Made for the people behind the work
           <span className="h-px w-8 bg-white/15" />
@@ -90,9 +88,7 @@ const page = () => {
 
       {/* Footer */}
       <footer className="relative flex flex-col items-center justify-between gap-3 border-t border-white/[0.08] px-6 py-6 text-xs text-white/40 sm:flex-row sm:px-10">
-        <p>
-          © 2026 Persona. All rights reserved.
-        </p>
+        <p>© 2026 Persona. All rights reserved.</p>
 
         <p>
           Built by{" "}
@@ -102,7 +98,7 @@ const page = () => {
             rel="noopener noreferrer"
             className="font-medium text-white/80 transition-colors hover:text-white"
           >
-            Mohan
+            Mohan 
           </a>
         </p>
       </footer>
