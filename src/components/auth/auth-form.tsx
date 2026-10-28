@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 import { loginWithEmailOrUsername } from "@/app/login/actions";
 import { createClient } from "@/lib/supabase/client";
@@ -22,7 +23,6 @@ type AuthFormProps = {
 const AuthForm = ({ mode }: AuthFormProps) => {
   const router = useRouter();
   const supabase = createClient();
-  const [message, setMessage] = useState("");
   const [oauthLoading, setOAuthLoading] = useState(false);
 
   const isSignup = mode === "signup";
@@ -37,24 +37,26 @@ const AuthForm = ({ mode }: AuthFormProps) => {
   });
 
   const onSubmit = async (values: AuthFormValues) => {
-    setMessage("");
-    if (!isSignup) {
-      const result = await loginWithEmailOrUsername(
-        values.identifier,
-        values.password
-      );
+    try {
+      if (!isSignup) {
+        const result = await loginWithEmailOrUsername(
+          values.identifier,
+          values.password
+        );
 
-      if (result.error) {
-        setMessage(result.error);
+        if (result.error) {
+          toast.error("Login failed", {
+            description: result.error,
+          });
+          return;
+        }
+
+        toast.success("Logged in successfully!");
+        router.push("/dashboard");
+        router.refresh();
         return;
       }
 
-      router.push("/dashboard");
-      router.refresh();
-      return;
-    }
-
-    try {
       const { data, error } = await supabase.auth.signUp({
         email: values.identifier,
         password: values.password,
@@ -63,37 +65,56 @@ const AuthForm = ({ mode }: AuthFormProps) => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        toast.error("Signup failed", {
+          description: error.message,
+        });
+        return;
+      }
 
-      setMessage(
-        data.session
-          ? "Account created successfully!"
-          : "Check your email to confirm your account"
-      );
+      if (data.session) {
+        toast.success("Account created successfully!");
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        toast.success("Check your inbox", {
+          description: `If registration succeeded, a confirmation email will be sent to ${values.identifier}. Check your spam folder too.`,
+          duration: 8000,
+        });
+      }
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Something went wrong."
-      );
+      toast.error(isSignup ? "Signup failed" : "Login failed", {
+        description:
+          error instanceof Error ? error.message : "Something went wrong.",
+      });
     }
   };
 
   const handleGoogleSignIn = async () => {
     setOAuthLoading(true);
-    setMessage("");
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
+
+      if (data.url) {
+        window.location.assign(data.url);
+      } else {
+        throw new Error("Google sign-in URL was not returned.");
+      }
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Google sign-in failed."
-      );
+      toast.error("Google sign-in failed", {
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
       setOAuthLoading(false);
     }
   };
@@ -121,7 +142,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
           <input
             id="identifier"
             type={isSignup ? "email" : "text"}
-            autoComplete="username"
+            autoComplete={isSignup ? "email" : "username"}
             aria-invalid={!!errors.identifier}
             {...register("identifier")}
             className="w-full rounded-md border bg-transparent px-3 py-2"
@@ -175,12 +196,6 @@ const AuthForm = ({ mode }: AuthFormProps) => {
       >
         {oauthLoading ? "Please wait..." : "Continue with Google"}
       </button>
-
-      {message && (
-        <p role="status" aria-live="polite" className="text-sm">
-          {message}
-        </p>
-      )}
 
       <p className="text-muted-foreground text-sm">
         {isSignup ? "Already have an account?" : "New to Persona?"}{" "}

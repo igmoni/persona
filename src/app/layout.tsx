@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Toaster } from "sonner";
 
 import "./globals.css";
 
@@ -26,10 +27,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressContentEditableWarning
+      suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
         {children}
 
+        <Toaster position="top-right" richColors duration={5} />
         <Analytics />
         <SpeedInsights />
       </body>
