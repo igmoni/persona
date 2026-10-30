@@ -3,18 +3,23 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Layers3 } from "lucide-react";
 import { toast } from "sonner";
 
-import { loginWithEmailOrUsername } from "@/app/login/actions";
+import { loginWithEmailOrUsername } from "@/app/(auth)/login/actions";
 import { createClient } from "@/lib/supabase/client";
 import {
   type AuthFormValues,
   loginSchema,
   signupSchema,
 } from "@/lib/validations/auth";
+
+import { Container } from "../common/Container";
+import { Button } from "../ui/button";
 
 type AuthFormProps = {
   mode: "login" | "signup";
@@ -23,6 +28,7 @@ type AuthFormProps = {
 const AuthForm = ({ mode }: AuthFormProps) => {
   const router = useRouter();
   const supabase = createClient();
+
   const [oauthLoading, setOAuthLoading] = useState(false);
 
   const isSignup = mode === "signup";
@@ -33,7 +39,10 @@ const AuthForm = ({ mode }: AuthFormProps) => {
     formState: { errors, isSubmitting },
   } = useForm<AuthFormValues>({
     resolver: zodResolver(isSignup ? signupSchema : loginSchema),
-    defaultValues: { identifier: "", password: "" },
+    defaultValues: {
+      identifier: "",
+      password: "",
+    },
   });
 
   const onSubmit = async (values: AuthFormValues) => {
@@ -77,9 +86,8 @@ const AuthForm = ({ mode }: AuthFormProps) => {
         router.push("/dashboard");
         router.refresh();
       } else {
-        toast.success("Check your inbox", {
-          description: `If registration succeeded, a confirmation email will be sent to ${values.identifier}. Check your spam folder too.`,
-          duration: 8000,
+        toast.success("Account created!", {
+          description: "Check your email to verify your account.",
         });
       }
     } catch (error) {
@@ -101,9 +109,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
         },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       if (data.url) {
         window.location.assign(data.url);
@@ -115,98 +121,187 @@ const AuthForm = ({ mode }: AuthFormProps) => {
         description:
           error instanceof Error ? error.message : "Please try again.",
       });
+
       setOAuthLoading(false);
     }
   };
 
   const loading = isSubmitting || oauthLoading;
 
+  const inputClassName =
+    "w-full rounded-xl border border-black/[0.08] bg-card text-[15px] text-ink placeholder:text-ink-3/75 transition-[border-color,box-shadow] outline-none hover:border-black/15 focus:border-accent/50 focus:shadow-ring disabled:opacity-60 aria-[invalid=true]:border-ember h-11 px-3.5";
+
   return (
-    <div className="mx-auto w-full max-w-sm space-y-5">
-      <div>
-        <h1 className="text-2xl font-semibold">
-          {isSignup ? "Create your Persona" : "Welcome back"}
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm">
-          {isSignup
-            ? "Create your account to get started."
-            : "Log in to manage your profile."}
-        </p>
-      </div>
+    <Container className="relative flex min-h-dvh w-full flex-col bg-white text-black">
+      {/* Logo */}
+      <header className="absolute top-0 left-0 z-10 p-7 sm:px-10 sm:py-7">
+        <a href="/" className="flex items-center gap-2">
+          <div className="flex size-9 items-center justify-center rounded-xl bg-black text-white">
+            <Layers3 size={22} strokeWidth={2} />
+          </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="identifier" className="text-sm font-medium">
-            {isSignup ? "Email" : "Email or username"}
-          </label>
-          <input
-            id="identifier"
-            type={isSignup ? "email" : "text"}
-            autoComplete={isSignup ? "email" : "username"}
-            aria-invalid={!!errors.identifier}
-            {...register("identifier")}
-            className="w-full rounded-md border bg-transparent px-3 py-2"
-          />
-          {errors.identifier && (
-            <p className="text-sm text-red-500">{errors.identifier.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium">
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete={isSignup ? "new-password" : "current-password"}
-            aria-invalid={!!errors.password}
-            {...register("password")}
-            className="w-full rounded-md border bg-transparent px-3 py-2"
-          />
-          {errors.password && (
-            <p className="text-sm text-red-500">{errors.password.message}</p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 disabled:opacity-50"
-        >
-          {isSubmitting
-            ? "Please wait..."
-            : isSignup
-              ? "Create account"
-              : "Log in"}
-        </button>
-      </form>
-
-      <div className="text-muted-foreground flex items-center gap-3 text-sm">
-        <div className="bg-border h-px flex-1" />
-        or
-        <div className="bg-border h-px flex-1" />
-      </div>
-
-      <button
-        type="button"
-        onClick={handleGoogleSignIn}
-        disabled={loading}
-        className="w-full rounded-md border px-4 py-2 disabled:opacity-50"
-      >
-        {oauthLoading ? "Please wait..." : "Continue with Google"}
-      </button>
-
-      <p className="text-muted-foreground text-sm">
-        {isSignup ? "Already have an account?" : "New to Persona?"}{" "}
-        <a
-          href={isSignup ? "/login" : "/signup"}
-          className="underline underline-offset-4"
-        >
-          {isSignup ? "Log in" : "Create an account"}
+          <span className="text-base font-semibold tracking-tight">
+            Persona
+          </span>
         </a>
-      </p>
-    </div>
+      </header>
+
+      {/* Auth form */}
+      <section className="flex flex-1 items-center justify-center px-6 py-28">
+        <div className="w-full max-w-[420px]">
+          {/* Heading */}
+          <div className="mb-7">
+            {!isSignup && (
+              <p className="text-ink-2 mb-2 text-[11px] font-medium tracking-[0.22em] uppercase">
+                Welcome back
+              </p>
+            )}
+
+            <h1 className="text-[32px] leading-tight font-medium tracking-[-0.045em]">
+              {isSignup ? "Let's build your page." : "Your page missed you."}
+            </h1>
+          </div>
+
+          {/* Google OAuth */}
+          <Button
+            type="button"
+            variant={"secondary"}
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+            className="flex h-11 w-full items-center justify-center gap-3 rounded-full border border-black/[0.09] bg-white text-sm font-semibold transition-colors hover:bg-black/[0.025] disabled:opacity-50"
+          >
+            <svg viewBox="0 0 48 48" className="size-[19px]" aria-hidden="true">
+              <path
+                fill="#FFC107"
+                d="M43.6 24.5c0-1.4-.1-2.7-.4-4H24v7.6h11a9.4 9.4 0 0 1-4.1 6.2v5h6.7c3.9-3.6 6-8.8 6-14.8Z"
+              />
+              <path
+                fill="#FF3D00"
+                d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.7-5a12.2 12.2 0 0 1-6.8 1.9c-5.3 0-9.8-3.6-11.4-8.4H5.7v5.1A20 20 0 0 0 24 44Z"
+              />
+              <path
+                fill="#4CAF50"
+                d="M12.6 27.6a12 12 0 0 1 0-7.2v-5.1H5.7a20 20 0 0 0 0 17.4l6.9-5.1Z"
+              />
+              <path
+                fill="#1976D2"
+                d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8A19.4 19.4 0 0 0 24 4 20 20 0 0 0 5.7 15.3l6.9 5.1C14.2 15.6 18.7 12 24 12Z"
+              />
+            </svg>
+
+            {oauthLoading ? "Please wait..." : "Continue with Google"}
+          </Button>
+
+          {/* Divider */}
+          <div className="text-ink-2 my-6 flex items-center gap-3 text-xs">
+            <div className="h-px flex-1 bg-black/[0.09]" />
+            <span>or</span>
+            <div className="h-px flex-1 bg-black/[0.09]" />
+          </div>
+
+          {/* Email/password form */}
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            noValidate
+            className="space-y-4"
+          >
+            {/* Email */}
+            <div className="space-y-2">
+              <label
+                htmlFor="identifier"
+                className="block text-[13px] font-medium"
+              >
+                Email
+              </label>
+
+              <input
+                id="identifier"
+                type="email"
+                autoComplete="email"
+                aria-invalid={!!errors.identifier}
+                {...register("identifier")}
+                placeholder="you@example.com"
+                className={inputClassName}
+              />
+
+              {errors.identifier && (
+                <p className="text-ember text-xs">
+                  {errors.identifier.message}
+                </p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div className="space-y-2">
+              <label
+                htmlFor="password"
+                className="block text-[13px] font-medium"
+              >
+                Password
+              </label>
+
+              <input
+                id="password"
+                type="password"
+                autoComplete={isSignup ? "new-password" : "current-password"}
+                aria-invalid={!!errors.password}
+                {...register("password")}
+                placeholder={isSignup ? "Create a password" : "Your password"}
+                className={inputClassName}
+              />
+
+              {errors.password && (
+                <p className="text-ember text-xs">{errors.password.message}</p>
+              )}
+
+              {isSignup && (
+                <p className="text-ink-2 text-xs">At least 8 characters.</p>
+              )}
+            </div>
+
+            {/* Submit */}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="flex h-[52px] w-full items-center justify-center rounded-full bg-black px-4 text-sm font-semibold text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+            >
+              {isSubmitting
+                ? "Please wait..."
+                : isSignup
+                  ? "Continue"
+                  : "Log in"}
+            </Button>
+          </form>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer
+        className={`text-ink-2 absolute ${isSignup ? "right-0" : "left-0"} bottom-5 p-7 text-[13px] sm:px-10 sm:py-7`}
+      >
+        {isSignup ? (
+          <p>
+            Already have a page?{" "}
+            <Link
+              href="/login"
+              className="cursor-pointer font-semibold text-black underline underline-offset-2"
+            >
+              Log in
+            </Link>
+          </p>
+        ) : (
+          <p>
+            New here?{" "}
+            <Link
+              href="/signup"
+              className="cursor-pointer font-semibold text-black underline underline-offset-2"
+            >
+              Start building for free
+            </Link>
+          </p>
+        )}
+      </footer>
+    </Container>
   );
 };
 
