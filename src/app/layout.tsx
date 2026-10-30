@@ -5,6 +5,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 
+import { ThemeProvider } from "@/providers/theme-provider";
+
 import "./globals.css";
 
 const jetbrains = JetBrains_Mono({
@@ -27,16 +29,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${figtree.className}  h-full antialiased`}
+      className={`${figtree.className} h-full antialiased`}
       suppressContentEditableWarning
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
-        {children}
+        <ThemeProvider>
+          {children}
 
-        <Toaster position="top-right" richColors duration={5} />
-        <Analytics />
-        <SpeedInsights />
+          <Toaster position="top-right" richColors duration={5} />
+          <Analytics />
+          <SpeedInsights />
+        </ThemeProvider>
       </body>
     </html>
   );
