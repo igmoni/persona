@@ -1,11 +1,9 @@
-import React from 'react'
-
 const Logo = () => {
   return (
-    <div>
-      
+    <div className="px-2 py-1">
+      <p className="text-xl font-semibold">Persona</p>
     </div>
-  )
-}
+  );
+};
 
-export {Logo}
+export { Logo };

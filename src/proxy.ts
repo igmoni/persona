@@ -15,6 +15,7 @@ export async function proxy(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
+
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
@@ -33,10 +34,28 @@ export async function proxy(request: NextRequest) {
   );
 
   // Refresh and validate the Supabase session.
-  // Keep this immediately after createServerClient.
-  await supabase.auth.getClaims();
+  const { data, error } = await supabase.auth.getClaims();
 
-  // Return the response with refreshed cookies intact.
+  const isAuthenticated = !error && !!data?.claims;
+
+  const pathname = request.nextUrl.pathname;
+
+  // Routes
+  const isAuthPage = pathname === "/login" || pathname === "/signup";
+
+  const isDashboardPage = pathname.startsWith("/dashboard");
+
+  // Redirect authenticated users away from auth pages.
+  if (isAuthenticated && isAuthPage) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  // Redirect unauthenticated users away from dashboard.
+  if (!isAuthenticated && isDashboardPage) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Return response with refreshed cookies.
   return supabaseResponse;
 }
 
