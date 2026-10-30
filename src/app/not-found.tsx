@@ -70,7 +70,6 @@ const NotFound = () => {
           back to where you belong.
         </p>
 
-        {/* Home button */}
         <Link
           href="/"
           className="group mt-10 inline-flex items-center gap-3 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-black transition-all duration-300 hover:bg-white/85"

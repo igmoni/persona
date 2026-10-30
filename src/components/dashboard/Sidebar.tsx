@@ -1,19 +1,22 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useState } from "react";
 
-import { ChevronDown, Send } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+
+import { Send } from "lucide-react";
 import { motion } from "motion/react";
 
 import { sidebarLinks } from "@/config/sidebar";
-import { jetbrainsMono } from "@/lib/font";
+import { workspaces } from "@/lib/common";
 
+import { CustomButton } from "../common/custom-button";
 import { Logo } from "../common/Logo";
 import { ThemeToggle } from "../common/theme-toggle";
 import { UserAvatar } from "../common/user-avatar";
-import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
+import { WorkspaceSwitcher } from "./workspace-switcher";
 
 type SidebarProps = {
   profile: {
@@ -25,36 +28,34 @@ type SidebarProps = {
 
 const Sidebar = ({ profile }: SidebarProps) => {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState(
+    workspaces[0]?.id ?? ""
+  );
+
+  const handleWorkspaceChange = (id: string) => {
+    setActiveWorkspaceId(id);
+  };
 
   return (
-    <aside className="border-border bg-background text-foreground fixed left-0 flex h-screen w-3xs flex-col justify-between border-r p-5">
+    <aside className="border-border bg-background sticky top-0 flex h-dvh w-full flex-col justify-between overflow-y-auto border-r p-5">
       {/* Top section */}
       <div>
         <Logo />
 
-        {/* Profile switcher */}
-        <div className="border-border bg-card hover:bg-accent mt-5 flex cursor-pointer items-center justify-between rounded-xl border p-1 px-3 transition-colors">
-          <div className="flex items-center gap-2">
-            <span className="bg-muted-foreground size-2 rounded-full" />
+        {/* Workspace switcher */}
+        <WorkspaceSwitcher
+          workspaces={workspaces}
+          activeWorkspaceId={activeWorkspaceId}
+          onWorkspaceChange={handleWorkspaceChange}
+          onCreateWorkspace={() => router.push("/onboarding")}
+        />
 
-            <div>
-              <p className="font-medium">{profile.name}</p>
-
-              <p
-                className={`${jetbrainsMono.className} text-muted-foreground -mt-1 text-sm`}
-              >
-                @igmoni
-              </p>
-            </div>
-          </div>
-
-          <ChevronDown className="text-muted-foreground size-4" />
-        </div>
-
-        <Separator className="bg-border my-3" />
+        <Separator className="my-3" />
 
         {/* Navigation */}
-        <div className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-1">
           {sidebarLinks.map((item) => {
             const isActive =
               item.href === "/dashboard"
@@ -65,7 +66,7 @@ const Sidebar = ({ profile }: SidebarProps) => {
               <Link
                 href={item.href}
                 key={item.href}
-                className="hover:text-foreground relative flex items-center gap-3 rounded-xl p-2 py-3 pl-3 transition-colors"
+                className="hover:text-foreground relative flex items-center gap-3 rounded-xl px-3 py-3 transition-colors"
               >
                 {isActive && (
                   <motion.div
@@ -81,14 +82,14 @@ const Sidebar = ({ profile }: SidebarProps) => {
 
                 <div className="relative z-10 flex items-center gap-2">
                   <span
-                    className={`transition-colors duration-200 ${
+                    className={
                       isActive ? "text-primary" : "text-muted-foreground"
-                    }`}
+                    }
                   >
                     {item.icon}
                   </span>
 
-                  <p
+                  <span
                     className={`text-sm ${
                       isActive
                         ? "text-foreground font-medium"
@@ -96,12 +97,12 @@ const Sidebar = ({ profile }: SidebarProps) => {
                     }`}
                   >
                     {item.title}
-                  </p>
+                  </span>
                 </div>
               </Link>
             );
           })}
-        </div>
+        </nav>
 
         {/* Theme toggle */}
         <div className="mt-2">
@@ -112,8 +113,8 @@ const Sidebar = ({ profile }: SidebarProps) => {
       {/* Bottom section */}
       <div className="flex flex-col">
         {/* Publish card */}
-        <div className="border-border bg-card flex w-full flex-col gap-2.5 rounded-2xl border p-4">
-          <div className="bg-muted flex w-fit items-center gap-1 rounded-full px-2.5 py-0.5">
+        <div className="border-border bg-card flex w-full flex-col gap-3 rounded-2xl border p-4">
+          <div className="bg-muted flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1">
             <span className="bg-muted-foreground size-2 rounded-full" />
             <span className="text-muted-foreground text-xs font-medium">
               Draft
@@ -124,17 +125,17 @@ const Sidebar = ({ profile }: SidebarProps) => {
             Only you can see this page.
           </p>
 
-          <Button className="flex w-full gap-2 rounded-full py-5 text-sm">
+          <CustomButton className="flex w-full gap-2 rounded-full py-5 text-sm">
             <Send className="size-4" />
             Publish from $49/yr
-          </Button>
+          </CustomButton>
         </div>
-
+       
         {/* User profile */}
-        <div className="mt-5 flex min-w-0 items-center gap-2">
+        <div className="mt-5 flex min-w-0 items-center gap-2 pl-2">
           <UserAvatar name={profile.name} avatar={profile.avatar} />
 
-          <p className="text-muted-foreground truncate text-sm">
+          <p className="text-muted-foreground truncate text-base">
             {profile.email}
           </p>
         </div>

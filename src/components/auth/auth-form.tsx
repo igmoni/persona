@@ -244,7 +244,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
             </div>
 
             {/* Submit */}
-            <Button
+            <CustomButton
               type="submit"
               disabled={loading}
               className="flex h-[52px] w-full items-center justify-center rounded-full bg-black px-4 text-sm font-semibold text-white transition-opacity hover:opacity-85 disabled:opacity-50"
@@ -254,7 +254,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
                 : isSignup
                   ? "Continue"
                   : "Log in"}
-            </Button>
+            </CustomButton>
           </form>
         </div>
       </section>
