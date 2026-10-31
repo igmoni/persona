@@ -21,7 +21,6 @@ import { GoogleSvg } from "@/svgs/google-svg";
 
 import { Container } from "../common/Container";
 import { CustomButton } from "../common/custom-button";
-import { Button } from "../ui/button";
 
 type AuthFormProps = {
   mode: "login" | "signup";
@@ -131,21 +130,21 @@ const AuthForm = ({ mode }: AuthFormProps) => {
   const loading = isSubmitting || oauthLoading;
 
   const inputClassName =
-    "w-full rounded-xl border border-black/[0.08] bg-card text-[15px] text-ink placeholder:text-ink-3/75 transition-[border-color,box-shadow] outline-none hover:border-black/15 focus:border-accent/50 focus:shadow-ring disabled:opacity-60 aria-[invalid=true]:border-ember h-11 px-3.5";
+    "flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive";
 
   return (
-    <Container className="relative flex min-h-dvh w-full flex-col bg-white text-black">
+    <Container className="bg-background text-foreground relative flex min-h-dvh w-full flex-col">
       {/* Logo */}
       <header className="absolute top-0 left-0 z-10 p-7 sm:px-10 sm:py-7">
-        <a href="/" className="flex items-center gap-2">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-black text-white">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="bg-primary text-primary-foreground flex size-9 items-center justify-center rounded-xl">
             <Layers3 size={22} strokeWidth={2} />
           </div>
 
           <span className="text-base font-semibold tracking-tight">
             Persona
           </span>
-        </a>
+        </Link>
       </header>
 
       {/* Auth form */}
@@ -154,7 +153,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
           {/* Heading */}
           <div className="mb-7">
             {!isSignup && (
-              <p className="text-ink-2 mb-2 text-[11px] font-medium tracking-[0.22em] uppercase">
+              <p className="text-muted-foreground mb-2 text-[11px] font-medium tracking-[0.22em] uppercase">
                 Welcome back
               </p>
             )}
@@ -162,25 +161,30 @@ const AuthForm = ({ mode }: AuthFormProps) => {
             <h1 className="text-[32px] leading-tight font-medium tracking-[-0.045em]">
               {isSignup ? "Let's build your page." : "Your page missed you."}
             </h1>
+
+            <p className="text-muted-foreground mt-2 text-sm">
+              {isSignup
+                ? "Create an account and start building your digital identity."
+                : "Sign in to continue to your Persona account."}
+            </p>
           </div>
 
           {/* Google OAuth */}
           <CustomButton
-            variant={"secondary"}
+            variant="secondary"
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="flex h-11 w-full items-center justify-center gap-3 rounded-full border border-black/[0.09] bg-white text-sm font-semibold transition-colors hover:bg-black/[0.025] disabled:opacity-50"
+            className="border-input bg-secondary text-secondary-foreground hover:bg-secondary/80 flex h-11 w-full items-center justify-center gap-3 rounded-md border text-sm font-medium transition-colors disabled:opacity-50"
           >
             <GoogleSvg />
-
             {oauthLoading ? "Please wait..." : "Continue with Google"}
           </CustomButton>
 
           {/* Divider */}
-          <div className="text-ink-2 my-6 flex items-center gap-3 text-xs">
-            <div className="h-px flex-1 bg-black/[0.09]" />
-            <span>or</span>
-            <div className="h-px flex-1 bg-black/[0.09]" />
+          <div className="text-muted-foreground my-6 flex items-center gap-3 text-xs">
+            <div className="bg-border h-px flex-1" />
+            <span>or continue with email</span>
+            <div className="bg-border h-px flex-1" />
           </div>
 
           {/* Email/password form */}
@@ -191,10 +195,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
           >
             {/* Email */}
             <div className="space-y-2">
-              <label
-                htmlFor="identifier"
-                className="block text-[13px] font-medium"
-              >
+              <label htmlFor="identifier" className="block text-sm font-medium">
                 Email
               </label>
 
@@ -209,7 +210,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
               />
 
               {errors.identifier && (
-                <p className="text-ember text-xs">
+                <p className="text-destructive text-xs">
                   {errors.identifier.message}
                 </p>
               )}
@@ -217,10 +218,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
 
             {/* Password */}
             <div className="space-y-2">
-              <label
-                htmlFor="password"
-                className="block text-[13px] font-medium"
-              >
+              <label htmlFor="password" className="block text-sm font-medium">
                 Password
               </label>
 
@@ -235,11 +233,15 @@ const AuthForm = ({ mode }: AuthFormProps) => {
               />
 
               {errors.password && (
-                <p className="text-ember text-xs">{errors.password.message}</p>
+                <p className="text-destructive text-xs">
+                  {errors.password.message}
+                </p>
               )}
 
               {isSignup && (
-                <p className="text-ink-2 text-xs">At least 8 characters.</p>
+                <p className="text-muted-foreground text-xs">
+                  At least 8 characters.
+                </p>
               )}
             </div>
 
@@ -247,12 +249,12 @@ const AuthForm = ({ mode }: AuthFormProps) => {
             <CustomButton
               type="submit"
               disabled={loading}
-              className="flex h-[52px] w-full items-center justify-center rounded-full bg-black px-4 text-sm font-semibold text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-11 w-full items-center justify-center rounded-md px-4 text-sm font-medium transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? "Please wait..."
                 : isSignup
-                  ? "Continue"
+                  ? "Create account"
                   : "Log in"}
             </CustomButton>
           </form>
@@ -261,14 +263,16 @@ const AuthForm = ({ mode }: AuthFormProps) => {
 
       {/* Footer */}
       <footer
-        className={`text-ink-2 absolute ${isSignup ? "right-0" : "left-0"} bottom-5 p-7 text-[13px] sm:px-10 sm:py-7`}
+        className={`text-muted-foreground absolute bottom-5 p-7 text-sm sm:px-10 sm:py-7 ${
+          isSignup ? "right-0" : "left-0"
+        }`}
       >
         {isSignup ? (
           <p>
-            Already have a page?{" "}
+            Already have an account?{" "}
             <Link
               href="/login"
-              className="cursor-pointer font-semibold text-black underline underline-offset-2"
+              className="text-foreground hover:text-primary font-medium underline underline-offset-4"
             >
               Log in
             </Link>
@@ -278,7 +282,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
             New here?{" "}
             <Link
               href="/signup"
-              className="cursor-pointer font-semibold text-black underline underline-offset-2"
+              className="text-foreground hover:text-primary font-medium underline underline-offset-4"
             >
               Start building for free
             </Link>

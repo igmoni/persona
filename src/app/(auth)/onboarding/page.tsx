@@ -1,25 +1,75 @@
 "use client";
 
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 
-import { ArrowRight, BookOpen, Check } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import { ArrowRight, Check, Loader2, X } from "lucide-react";
 
 import { Logo } from "@/components/common/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { completeOnboarding } from "@/lib/actions/onboarding";
+import { checkUsernameAvailability } from "@/lib/actions/username";
 import { jetbrainsMono } from "@/lib/font";
 
 const steps = [1, 2, 3, 4, 5];
 
 const Page = () => {
+  const router = useRouter();
+
   const [username, setUsername] = useState("");
+  const [status, setStatus] = useState<
+    "idle" | "checking" | "available" | "taken" | "error"
+  >("idle");
+
+  const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isValid = /^[a-zA-Z0-9_]{3,20}$/.test(username);
 
-  const handleSubmit = (e: Event) => {
+  const handleUsernameChange = (value: string) => {
+    setUsername(value.replace(/[^a-zA-Z0-9_]/g, ""));
+    setStatus("idle");
+    setMessage("");
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (isValid) {
-      // Connect your username availability API and next onboarding step here.
+
+    if (!isValid || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setStatus("checking");
+    setMessage("Checking username availability...");
+
+    try {
+      // 1. Check username availability
+      const availability = await checkUsernameAvailability(username);
+
+      if (!availability.available) {
+        setStatus("taken");
+        setMessage(availability.error ?? "Username is unavailable.");
+        return;
+      }
+
+      // 2. Save username to the database
+      const result = await completeOnboarding(username);
+
+      if (!result.success) {
+        setStatus("error");
+        setMessage(result.error);
+        return;
+      }
+
+      // 3. Redirect to dashboard
+      router.replace("/dashboard");
+      router.refresh();
+    } catch {
+      setStatus("error");
+      setMessage("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -28,7 +78,6 @@ const Page = () => {
       <div className="bg-background text-foreground min-h-screen w-3/4">
         {/* Header */}
         <header className="flex h-20 items-center justify-between px-6 md:px-9">
-          {/* Logo */}
           <Logo />
 
           {/* Progress */}
@@ -83,9 +132,7 @@ const Page = () => {
                 <Input
                   id="username"
                   value={username}
-                  onChange={(e) =>
-                    setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))
-                  }
+                  onChange={(e) => handleUsernameChange(e.target.value)}
                   className="-ml-2.5 border-0! bg-transparent! shadow-none! ring-0! outline-none! focus-visible:border-0! focus-visible:bg-transparent! focus-visible:ring-0!"
                   autoComplete="off"
                   maxLength={20}
@@ -93,16 +140,31 @@ const Page = () => {
                 />
               </div>
 
+              {/* Username validation */}
               <div className="flex items-center gap-1.5 pt-0.5 text-xs">
-                {isValid ? (
+                {status === "available" ? (
                   <>
                     <Check className="size-3.5 text-emerald-600" />
-                    <span className="text-emerald-600">
-                      Username format looks good
-                    </span>
+                    <span className="text-emerald-600">{message}</span>
+                  </>
+                ) : status === "taken" || status === "error" ? (
+                  <>
+                    <X className="text-destructive size-3.5" />
+                    <span className="text-destructive">{message}</span>
+                  </>
+                ) : status === "checking" ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span className="text-muted-foreground">{message}</span>
                   </>
                 ) : (
-                  <span className="text-destructive">
+                  <span
+                    className={
+                      username.length > 0 && !isValid
+                        ? "text-destructive"
+                        : "text-muted-foreground"
+                    }
+                  >
                     Use 3–20 letters, numbers or underscores.
                   </span>
                 )}
@@ -112,18 +174,19 @@ const Page = () => {
               <div className="flex justify-end pt-6">
                 <Button
                   type="submit"
-                  disabled={!isValid}
+                  disabled={!isValid || isSubmitting}
                   className="h-13 rounded-full px-10 text-sm font-semibold"
                 >
-                  Continue
-                  <ArrowRight className="ml-1 size-4" />
+                  {isSubmitting ? "Processing..." : "Continue"}
+                  {!isSubmitting && <ArrowRight className="ml-1 size-4" />}
                 </Button>
               </div>
             </form>
           </div>
         </main>
       </div>
-      <div className="bg-accent w-1/4"></div>
+
+      <div className="bg-accent w-1/4" />
     </div>
   );
 };
