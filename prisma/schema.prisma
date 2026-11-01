@@ -19,6 +19,15 @@ enum Theme {
   SUNSET
   FOREST
   MINIMAL
+  LINEN
+  INK
+  MATCHA
+  TANGERINE
+  TERMINAL
+  BLUEPRINT
+  PEACH
+  NEWSPRINT
+  AURORA
 }
 
 model User {
