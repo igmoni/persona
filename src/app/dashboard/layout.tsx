@@ -1,19 +1,11 @@
-import { redirect } from "next/navigation";
-
 import { Navbar } from "@/components/dashboard/navbar";
 import { Sidebar } from "@/components/dashboard/side-bar";
-import { getUser } from "@/lib/auth";
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
-  const user = await getUser();
-
-  if (!user) redirect("/login");
-
   const profile = {
-    name: user.user_metadata?.full_name ?? user.user_metadata?.name ?? "User",
-    email: user.email ?? "",
-    avatar:
-      user.user_metadata?.avatar_url ?? user.user_metadata?.picture ?? null,
+    name: "Mohan S P",
+    email: "abc@example.com",
+    avatar: "",
   };
 
   return (

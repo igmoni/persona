@@ -17,7 +17,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { createClient } from "@/lib/supabase/client";
 
 const colors = [
   "bg-red-500",
@@ -43,19 +42,12 @@ export function UserAvatar({ name, email, avatar }: UserAvatarProps) {
 
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const supabase = createClient();
 
   const initial = name.trim().charAt(0).toUpperCase() || "U";
   const isDark = theme === "dark";
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      console.error("Sign out failed:", error.message);
-      return;
-    }
-
+  
     router.replace("/login");
     router.refresh();
   };

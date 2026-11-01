@@ -11,7 +11,7 @@ export default function LoginPage() {
         <Image
           fill
           alt="Image"
-          src={"/assets/login.jpg"}
+          src={"/assets/login.webp"}
           className="object-cover object-top"
         />
       </Container>

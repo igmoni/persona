@@ -10,7 +10,7 @@ export default function SignupPage() {
         <Image
           fill
           alt="Image"
-          src={"/assets/login.jpeg"}
+          src={"/assets/signup.jpg"}
           className="object-cover object-top"
         />
       </Container>

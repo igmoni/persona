@@ -7,11 +7,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Layers3 } from "lucide-react";
+import { Eye, EyeOff, Layers3 } from "lucide-react";
 import { toast } from "sonner";
 
-import { loginWithEmailOrUsername } from "@/app/(auth)/login/actions";
-import { createClient } from "@/lib/supabase/client";
+import { signIn, signUp } from "@/lib/auth-client";
 import {
   type AuthFormValues,
   loginSchema,
@@ -28,8 +27,8 @@ type AuthFormProps = {
 
 const AuthForm = ({ mode }: AuthFormProps) => {
   const router = useRouter();
-  const supabase = createClient();
 
+  const [showPassword, setShowPassword] = useState(false);
   const [oauthLoading, setOAuthLoading] = useState(false);
 
   const isSignup = mode === "signup";
@@ -46,55 +45,56 @@ const AuthForm = ({ mode }: AuthFormProps) => {
     },
   });
 
+  const loading = isSubmitting || oauthLoading;
+
+  const inputClassName =
+    "flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive";
+
   const onSubmit = async (values: AuthFormValues) => {
     try {
-      if (!isSignup) {
-        const result = await loginWithEmailOrUsername(
-          values.identifier,
-          values.password
-        );
+      if (isSignup) {
+        const { error } = await signUp.email({
+          email: values.identifier,
+          password: values.password,
+          name: values.identifier.split("@")[0],
+        });
 
-        if (result.error) {
-          toast.error("Login failed", {
-            description: result.error,
+        if (error) {
+          toast.error("Signup failed", {
+            description: error.message,
           });
           return;
         }
 
-        toast.success("Logged in successfully!");
+        toast.success("Account created successfully!");
+
         router.push("/dashboard");
         router.refresh();
         return;
       }
 
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await signIn.email({
         email: values.identifier,
         password: values.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
       });
 
       if (error) {
-        toast.error("Signup failed", {
+        toast.error("Login failed", {
           description: error.message,
         });
         return;
       }
 
-      if (data.session) {
-        toast.success("Account created successfully!");
-        router.push("/dashboard");
-        router.refresh();
-      } else {
-        toast.success("Account created!", {
-          description: "Check your email to verify your account.",
-        });
-      }
+      toast.success("Welcome back!");
+
+      router.push("/dashboard");
+      router.refresh();
     } catch (error) {
       toast.error(isSignup ? "Signup failed" : "Login failed", {
         description:
-          error instanceof Error ? error.message : "Something went wrong.",
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
       });
     }
   };
@@ -103,19 +103,16 @@ const AuthForm = ({ mode }: AuthFormProps) => {
     setOAuthLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await signIn.social({
         provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
+        callbackURL: "/dashboard",
       });
 
-      if (error) throw error;
-
-      if (data.url) {
-        window.location.assign(data.url);
-      } else {
-        throw new Error("Google sign-in URL was not returned.");
+      if (error) {
+        toast.error("Google sign-in failed", {
+          description: error.message,
+        });
+        setOAuthLoading(false);
       }
     } catch (error) {
       toast.error("Google sign-in failed", {
@@ -126,11 +123,6 @@ const AuthForm = ({ mode }: AuthFormProps) => {
       setOAuthLoading(false);
     }
   };
-
-  const loading = isSubmitting || oauthLoading;
-
-  const inputClassName =
-    "flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive";
 
   return (
     <Container className="bg-background text-foreground relative flex min-h-dvh w-full flex-col">
@@ -171,6 +163,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
 
           {/* Google OAuth */}
           <FlipButton
+            type="button"
             variant="secondary"
             onClick={handleGoogleSignIn}
             disabled={loading}
@@ -207,6 +200,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
                 {...register("identifier")}
                 placeholder="you@example.com"
                 className={inputClassName}
+                disabled={loading}
               />
 
               {errors.identifier && (
@@ -222,15 +216,27 @@ const AuthForm = ({ mode }: AuthFormProps) => {
                 Password
               </label>
 
-              <input
-                id="password"
-                type="password"
-                autoComplete={isSignup ? "new-password" : "current-password"}
-                aria-invalid={!!errors.password}
-                {...register("password")}
-                placeholder={isSignup ? "Create a password" : "Your password"}
-                className={inputClassName}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete={isSignup ? "new-password" : "current-password"}
+                  aria-invalid={!!errors.password}
+                  {...register("password")}
+                  placeholder={isSignup ? "Create a password" : "Your password"}
+                  className={`${inputClassName} pr-11`}
+                  disabled={loading}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
 
               {errors.password && (
                 <p className="text-destructive text-xs">
@@ -246,12 +252,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
             </div>
 
             {/* Submit */}
-            <FlipButton
-              type="submit"
-              disabled={loading}
-              className="w-full "
-              // className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-11 w-full items-center justify-center rounded-md px-4 text-sm font-medium transition-colors disabled:opacity-50"
-            >
+            <FlipButton type="submit" disabled={loading} className="w-full">
               {isSubmitting
                 ? "Please wait..."
                 : isSignup

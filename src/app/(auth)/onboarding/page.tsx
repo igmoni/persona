@@ -9,8 +9,6 @@ import { ArrowRight, Check, Loader2, X } from "lucide-react";
 import { Logo } from "@/components/common/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { completeOnboarding } from "@/lib/actions/onboarding";
-import { checkUsernameAvailability } from "@/lib/actions/username";
 import { jetbrainsMono } from "@/lib/font";
 
 const steps = [1, 2, 3, 4, 5];
@@ -35,42 +33,7 @@ const Page = () => {
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!isValid || isSubmitting) return;
-
-    setIsSubmitting(true);
-    setStatus("checking");
-    setMessage("Checking username availability...");
-
-    try {
-      // 1. Check username availability
-      const availability = await checkUsernameAvailability(username);
-
-      if (!availability.available) {
-        setStatus("taken");
-        setMessage(availability.error ?? "Username is unavailable.");
-        return;
-      }
-
-      // 2. Save username to the database
-      const result = await completeOnboarding(username);
-
-      if (!result.success) {
-        setStatus("error");
-        setMessage(result.error);
-        return;
-      }
-
-      // 3. Redirect to dashboard
-      router.replace("/dashboard");
-      router.refresh();
-    } catch {
-      setStatus("error");
-      setMessage("Something went wrong. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  
   };
 
   return (
