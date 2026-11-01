@@ -17,10 +17,10 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="bg-background text-foreground grid min-h-screen grid-cols-[300px_minmax(0,1fr)]">
+    <div className="bg-background text-foreground flex min-h-screen">
       <Sidebar profile={profile} />
 
-      <div className="flex min-w-0 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Navbar />
 
         <main className="min-w-0 flex-1 p-6">{children}</main>
