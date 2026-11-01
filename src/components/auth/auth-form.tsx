@@ -68,7 +68,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
 
         toast.success("Account created successfully!");
 
-        router.push("/dashboard");
+        router.push("/onboarding?new=1");
         router.refresh();
         return;
       }
@@ -105,7 +105,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
     try {
       const { error } = await signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: "/onboarding",
       });
 
       if (error) {
