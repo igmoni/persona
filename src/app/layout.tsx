@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Figtree, JetBrains_Mono } from "next/font/google";
+import { Figtree, JetBrains_Mono, Geist } from "next/font/google";
 
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -8,6 +8,9 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "@/providers/theme-provider";
 
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
@@ -29,7 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${figtree.className} h-full antialiased`}
+      className={cn("h-full", "antialiased", figtree.className, "font-sans", geist.variable)}
       suppressContentEditableWarning
       suppressHydrationWarning
     >
