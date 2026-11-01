@@ -5,7 +5,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { ArrowLeft, ArrowRight, Check, Loader2, X } from "lucide-react";
+import { toast } from "sonner";
 
+import { createWorkspace, updateWorkspace } from "@/actions/workspace";
 import { Logo } from "@/components/common/Logo";
 import { PersonaPagePreview } from "@/components/preview/page-preview";
 import { Button } from "@/components/ui/button";
@@ -36,7 +38,11 @@ const Wizard = () => {
 
   const [step, setStep] = useState(1);
   const [data, setData] = useState<PersonaPreviewData>(initialData);
+
   const [showBuildDialog, setShowBuildDialog] = useState(false);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
   const [usernameStatus, setUsernameStatus] = useState<
     "idle" | "checking" | "available" | "taken" | "error"
   >("idle");
@@ -45,6 +51,7 @@ const Wizard = () => {
 
   const isValidUsername = /^[a-zA-Z0-9_]{3,20}$/.test(data.username);
 
+  // Username availability check
   useEffect(() => {
     if (!isValidUsername) return;
 
@@ -71,7 +78,9 @@ const Wizard = () => {
         setUsernameStatus(result.available ? "available" : "taken");
         setUsernameMessage(result.message);
       } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") return;
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
 
         setUsernameStatus("error");
         setUsernameMessage("Unable to check availability. Try again.");
@@ -84,6 +93,7 @@ const Wizard = () => {
     };
   }, [data.username, isValidUsername]);
 
+  // Update onboarding data
   const updateData = <K extends keyof PersonaPreviewData>(
     key: K,
     value: PersonaPreviewData[K]
@@ -94,15 +104,48 @@ const Wizard = () => {
     }));
   };
 
+  // Username input
   const handleUsernameChange = (value: string) => {
+    setUsernameStatus("idle");
+    setUsernameMessage("");
+
     updateData("username", value.replace(/[^a-zA-Z0-9_]/g, "").toLowerCase());
   };
 
-  const handleContinue = () => {
-    if (step === 1) {
-      if (!isValidUsername) return;
+  // Continue onboarding / create workspace
+  const handleContinue = async () => {
+    if (isSaving) return;
 
-      setShowBuildDialog(true);
+    if (step === 1) {
+      if (!isValidUsername || usernameStatus !== "available") {
+        return;
+      }
+
+      setIsSaving(true);
+
+      try {
+        const result = await createWorkspace(data.username);
+
+        if (!result.success) {
+          toast.error(result.error);
+
+          if (result.error === "Username is already taken") {
+            setUsernameStatus("taken");
+            setUsernameMessage(result.error);
+          }
+
+          return;
+        }
+
+        setWorkspaceId(result.workspace.id);
+        setShowBuildDialog(true);
+      } catch (error) {
+        console.error("Workspace creation error:", error);
+        toast.error("Unable to create workspace. Please try again.");
+      } finally {
+        setIsSaving(false);
+      }
+
       return;
     }
 
@@ -111,26 +154,69 @@ const Wizard = () => {
     }
   };
 
+  // Go back
   const handleBack = () => {
-    if (step > 1) {
+    if (step > 1 && !isSaving) {
       setStep((previous) => previous - 1);
     }
   };
 
+  // Build it myself
   const handleBuildMyself = () => {
-    // We'll create the minimal profile before redirecting in the persistence step.
+    if (!workspaceId) {
+      toast.error("Please create your workspace first.");
+      return;
+    }
+
     setShowBuildDialog(false);
     router.push("/dashboard");
+    router.refresh();
   };
 
+  // Help me build it
   const handleGetHelp = () => {
+    if (!workspaceId) {
+      toast.error("Please create your workspace first.");
+      return;
+    }
+
     setShowBuildDialog(false);
     setStep(2);
   };
 
-  const handleFinish = () => {
-    // Database persistence will be connected after all steps are implemented.
-    console.log("Persona onboarding:", data);
+  // Finish onboarding and update existing workspace
+  const handleFinish = async () => {
+    if (!workspaceId || isSaving) {
+      toast.error("Your workspace could not be found.");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const result = await updateWorkspace({
+        workspaceId,
+        fullName: data.fullName,
+        bio: data.bio,
+        profession: data.profession,
+        theme: data.theme,
+      });
+
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+
+      toast.success("Your Persona has been created!");
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (error) {
+      console.error("Workspace update error:", error);
+      toast.error("Unable to save your Persona. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const canContinue = step !== 3 || data.fullName.trim().length >= 2;
@@ -193,6 +279,7 @@ const Wizard = () => {
                       className="-ml-2.5 border-0! bg-transparent! shadow-none! ring-0! outline-none! focus-visible:border-0! focus-visible:bg-transparent! focus-visible:ring-0!"
                       autoComplete="off"
                       maxLength={20}
+                      disabled={isSaving || !!workspaceId}
                     />
                   </div>
 
@@ -235,7 +322,7 @@ const Wizard = () => {
               </div>
             )}
 
-            {/* Steps 2–5 will be added as separate components */}
+            {/* Step 2: Profession */}
             {step === 2 && (
               <Profession
                 value={data.profession}
@@ -243,6 +330,7 @@ const Wizard = () => {
               />
             )}
 
+            {/* Step 3: Introduction */}
             {step === 3 && (
               <Introduction
                 fullName={data.fullName}
@@ -254,6 +342,7 @@ const Wizard = () => {
               />
             )}
 
+            {/* Step 4: Socials */}
             {step === 4 && (
               <Socials
                 socials={data.socials}
@@ -262,6 +351,7 @@ const Wizard = () => {
               />
             )}
 
+            {/* Step 5: Theme */}
             {step === 5 && (
               <Theme
                 value={data.theme}
@@ -276,6 +366,7 @@ const Wizard = () => {
                   type="button"
                   variant="ghost"
                   onClick={handleBack}
+                  disabled={isSaving}
                   className="rounded-full"
                 >
                   <ArrowLeft className="mr-2 size-4" />
@@ -289,12 +380,23 @@ const Wizard = () => {
                 type="button"
                 onClick={step === 5 ? handleFinish : handleContinue}
                 disabled={
-                  (step === 1 && usernameStatus !== "available") || !canContinue
+                  isSaving ||
+                  (step === 1 && usernameStatus !== "available") ||
+                  !canContinue
                 }
                 className="h-12 rounded-full px-8"
               >
-                {step === 5 ? "Create my Persona" : "Continue"}
-                <ArrowRight className="ml-2 size-4" />
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    {step === 5 ? "Create my Persona" : "Continue"}
+                    <ArrowRight className="ml-2 size-4" />
+                  </>
+                )}
               </Button>
             </div>
           </main>
@@ -305,6 +407,7 @@ const Wizard = () => {
           <div className="sticky top-6 w-full">
             <div className="mb-6 text-center">
               <p className="text-sm font-medium">Live preview</p>
+
               <p className="text-muted-foreground mt-1 text-xs">
                 Your Persona, taking shape.
               </p>
@@ -315,6 +418,7 @@ const Wizard = () => {
         </aside>
       </div>
 
+      {/* Build choice dialog */}
       <ChoiceDialog
         open={showBuildDialog}
         onBuildMyself={handleBuildMyself}
@@ -323,27 +427,5 @@ const Wizard = () => {
     </div>
   );
 };
-
-type StepIntroProps = {
-  number: string;
-  title: string;
-  description: string;
-};
-
-const StepIntro = ({ number, title, description }: StepIntroProps) => (
-  <div className="space-y-3">
-    <p className="text-muted-foreground text-xs font-medium tracking-[0.2em] uppercase">
-      Step {number}
-    </p>
-
-    <h1 className="text-3xl leading-tight font-medium tracking-tight md:text-4xl">
-      {title}
-    </h1>
-
-    <p className="text-muted-foreground text-sm leading-relaxed">
-      {description}
-    </p>
-  </div>
-);
 
 export { Wizard };

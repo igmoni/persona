@@ -6,8 +6,8 @@ import { prisma } from "@/lib/prisma";
 export async function GET(req: NextRequest) {
   const username = req.nextUrl.searchParams
     .get("username")
-    ?.toLowerCase()
-    .trim();
+    ?.trim()
+    .toLowerCase();
 
   if (!username || !/^[a-z0-9_]{3,20}$/.test(username)) {
     return NextResponse.json(
@@ -24,18 +24,20 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const profile = await prisma.profile.findUnique({
+    const workspace = await prisma.workspace.findUnique({
       where: { username },
       select: { id: true },
     });
 
     return NextResponse.json({
-      available: !profile,
-      message: profile
+      available: !workspace,
+      message: workspace
         ? "The username is already taken."
         : "The username is available!",
     });
-  } catch {
+  } catch (error) {
+    console.error("Username availability error:", error);
+
     return NextResponse.json(
       { available: false, message: "Unable to check username right now." },
       { status: 500 }
