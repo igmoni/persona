@@ -105,7 +105,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
     try {
       const { error } = await signIn.social({
         provider: "google",
-        callbackURL: "/onboarding",
+        callbackURL: isSignup ? "/onboarding?new=1" : "/dashboard",
       });
 
       if (error) {

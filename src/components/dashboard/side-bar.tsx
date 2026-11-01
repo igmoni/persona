@@ -9,7 +9,6 @@ import { PanelLeft, Send } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { sidebarLinks } from "@/config/sidebar";
-import { workspaces } from "@/lib/common";
 
 import { FlipButton } from "../common/flip-button";
 import { Logo } from "../common/Logo";
@@ -18,12 +17,21 @@ import { UserAvatar } from "../common/user-avatar";
 import { Separator } from "../ui/separator";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 
+export type Workspace = {
+  id: string;
+  username: string;
+  fullName: string | null;
+};
+
 type SidebarProps = {
   profile: {
     name: string;
     email: string;
     avatar: string | null;
   };
+  workspaces: Workspace[];
+  activeWorkspaceId: string;
+  onWorkspaceChange: (id: string) => void;
 };
 
 const SIDEBAR_WIDTH = {
@@ -37,21 +45,18 @@ const transition = {
   damping: 30,
 };
 
-const Sidebar = ({ profile }: SidebarProps) => {
+const Sidebar = ({
+  profile,
+  workspaces,
+  activeWorkspaceId,
+  onWorkspaceChange,
+}: SidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
 
   const [isOpen, setIsOpen] = useState(true);
 
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState(
-    workspaces[0]?.id ?? ""
-  );
-
   const isCollapsed = !isOpen;
-
-  const handleWorkspaceChange = (id: string) => {
-    setActiveWorkspaceId(id);
-  };
 
   return (
     <motion.aside
@@ -104,8 +109,8 @@ const Sidebar = ({ profile }: SidebarProps) => {
         <WorkspaceSwitcher
           workspaces={workspaces}
           activeWorkspaceId={activeWorkspaceId}
-          onWorkspaceChange={handleWorkspaceChange}
-          onCreateWorkspace={() => router.push("/onboarding")}
+          onWorkspaceChange={onWorkspaceChange}
+          onCreateWorkspace={() => router.push("/onboarding?new=1")}
           isCollapsed={isCollapsed}
         />
 

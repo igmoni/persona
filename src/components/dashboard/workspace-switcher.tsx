@@ -15,8 +15,8 @@ import { jetbrainsMono } from "@/lib/font";
 
 export type Workspace = {
   id: string;
-  name: string;
   username: string;
+  fullName: string | null;
 };
 
 type WorkspaceSwitcherProps = {
@@ -38,7 +38,8 @@ const WorkspaceSwitcher = ({
     (workspace) => workspace.id === activeWorkspaceId
   );
 
-  if (!activeWorkspace) return null;
+  const getWorkspaceName = (workspace: Workspace) =>
+    workspace.fullName?.trim() || workspace.username;
 
   return (
     <DropdownMenu>
@@ -46,7 +47,13 @@ const WorkspaceSwitcher = ({
         render={
           <button
             type="button"
-            title={isCollapsed ? activeWorkspace.name : undefined}
+            title={
+              isCollapsed
+                ? activeWorkspace
+                  ? getWorkspaceName(activeWorkspace)
+                  : "Create workspace"
+                : undefined
+            }
             className={`border-border bg-card hover:bg-accent mt-5 flex w-full items-center rounded-xl border p-3 transition-colors ${
               isCollapsed ? "justify-center" : "justify-between"
             }`}
@@ -55,14 +62,14 @@ const WorkspaceSwitcher = ({
       >
         {isCollapsed ? (
           <Layers className="text-muted-foreground size-5" />
-        ) : (
+        ) : activeWorkspace ? (
           <>
             <div className="flex min-w-0 items-center gap-2">
               <span className="bg-primary size-2 shrink-0 rounded-full" />
 
               <div className="min-w-0 text-left">
                 <p className="text-foreground truncate text-sm font-medium">
-                  {activeWorkspace.name}
+                  {getWorkspaceName(activeWorkspace)}
                 </p>
 
                 <p
@@ -71,6 +78,15 @@ const WorkspaceSwitcher = ({
                   @{activeWorkspace.username}
                 </p>
               </div>
+            </div>
+
+            <ChevronDown className="text-muted-foreground size-4 shrink-0" />
+          </>
+        ) : (
+          <>
+            <div className="flex min-w-0 items-center gap-2">
+              <Layers className="text-muted-foreground size-5" />
+              <span className="text-sm font-medium">Create workspace</span>
             </div>
 
             <ChevronDown className="text-muted-foreground size-4 shrink-0" />
@@ -87,33 +103,41 @@ const WorkspaceSwitcher = ({
         <DropdownMenuGroup>
           <DropdownMenuLabel>Your workspaces</DropdownMenuLabel>
 
-          {workspaces.map((workspace) => {
-            const isActive = workspace.id === activeWorkspaceId;
+          {workspaces.length > 0 ? (
+            workspaces.map((workspace) => {
+              const isActive = workspace.id === activeWorkspaceId;
 
-            return (
-              <DropdownMenuItem
-                key={workspace.id}
-                onClick={() => onWorkspaceChange(workspace.id)}
-                className="flex cursor-pointer items-center justify-between gap-3 py-2.5"
-              >
-                <div className="flex min-w-0 items-center gap-2">
-                  <Layers className="text-muted-foreground size-4 shrink-0" />
+              return (
+                <DropdownMenuItem
+                  key={workspace.id}
+                  onClick={() => onWorkspaceChange(workspace.id)}
+                  className="flex cursor-pointer items-center justify-between gap-3 py-2.5"
+                >
+                  <div className="flex min-w-0 items-center gap-2">
+                    <Layers className="text-muted-foreground size-4 shrink-0" />
 
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
-                      {workspace.name}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {getWorkspaceName(workspace)}
+                      </p>
 
-                    <p className="text-muted-foreground truncate text-xs">
-                      @{workspace.username}
-                    </p>
+                      <p className="text-muted-foreground truncate text-xs">
+                        @{workspace.username}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                {isActive && <Check className="text-primary size-4 shrink-0" />}
-              </DropdownMenuItem>
-            );
-          })}
+                  {isActive && (
+                    <Check className="text-primary size-4 shrink-0" />
+                  )}
+                </DropdownMenuItem>
+              );
+            })
+          ) : (
+            <p className="text-muted-foreground px-2 py-3 text-xs">
+              You haven&apos;t created a workspace yet.
+            </p>
+          )}
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />

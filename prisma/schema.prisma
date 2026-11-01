@@ -40,6 +40,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  workspaces Workspace[]
   profile       Profile?
 
   @@unique([email])
@@ -125,6 +126,30 @@ model SocialLink {
   profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
+   workspaceId String
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
   @@unique([profileId, platform])
   @@map("social_link")
+}
+
+model Workspace {
+  id         String   @id @default(cuid())
+  userId     String
+  username   String   @unique
+  fullName   String?
+  title      String?
+  bio        String?
+  avatarUrl  String?
+  profession String?
+  theme      Theme    @default(LINEN)
+  isPublished Boolean @default(false)
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  socialLinks SocialLink[]
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("workspace")
 }
