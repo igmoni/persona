@@ -24,6 +24,7 @@ type WorkspaceSwitcherProps = {
   activeWorkspaceId: string;
   onWorkspaceChange: (id: string) => void;
   onCreateWorkspace: () => void;
+  isCollapsed: boolean;
 };
 
 const WorkspaceSwitcher = ({
@@ -31,6 +32,7 @@ const WorkspaceSwitcher = ({
   activeWorkspaceId,
   onWorkspaceChange,
   onCreateWorkspace,
+  isCollapsed,
 }: WorkspaceSwitcherProps) => {
   const activeWorkspace = workspaces.find(
     (workspace) => workspace.id === activeWorkspaceId
@@ -44,30 +46,44 @@ const WorkspaceSwitcher = ({
         render={
           <button
             type="button"
-            className="border-border bg-card hover:bg-accent mt-5 flex w-full items-center justify-between rounded-xl border p-3 text-left transition-colors"
+            title={isCollapsed ? activeWorkspace.name : undefined}
+            className={`border-border bg-card hover:bg-accent mt-5 flex w-full items-center rounded-xl border p-3 transition-colors ${
+              isCollapsed ? "justify-center" : "justify-between"
+            }`}
           />
         }
       >
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="bg-primary size-2 shrink-0 rounded-full" />
+        {isCollapsed ? (
+          <Layers className="text-muted-foreground size-5" />
+        ) : (
+          <>
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="bg-primary size-2 shrink-0 rounded-full" />
 
-          <div className="min-w-0">
-            <p className="text-foreground truncate text-sm font-medium">
-              {activeWorkspace.name}
-            </p>
+              <div className="min-w-0 text-left">
+                <p className="text-foreground truncate text-sm font-medium">
+                  {activeWorkspace.name}
+                </p>
 
-            <p
-              className={`${jetbrainsMono.className} text-muted-foreground -mt-0.5 truncate text-xs`}
-            >
-              @{activeWorkspace.username}
-            </p>
-          </div>
-        </div>
+                <p
+                  className={`${jetbrainsMono.className} text-muted-foreground -mt-0.5 truncate text-xs`}
+                >
+                  @{activeWorkspace.username}
+                </p>
+              </div>
+            </div>
 
-        <ChevronDown className="text-muted-foreground size-4 shrink-0" />
+            <ChevronDown className="text-muted-foreground size-4 shrink-0" />
+          </>
+        )}
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="start" sideOffset={8} className="w-[280px]">
+      <DropdownMenuContent
+        align="start"
+        side={isCollapsed ? "right" : "bottom"}
+        sideOffset={8}
+        className="w-64"
+      >
         <DropdownMenuGroup>
           <DropdownMenuLabel>Your workspaces</DropdownMenuLabel>
 

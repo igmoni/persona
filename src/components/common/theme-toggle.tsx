@@ -8,7 +8,11 @@ import { Moon, Sun } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-export function ThemeToggle() {
+type ThemeToggleProps = {
+  isCollapsed: boolean;
+};
+
+export function ThemeToggle({ isCollapsed }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -24,10 +28,18 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="text-foreground hover:bg-accent w-full justify-start gap-3 rounded-xl px-3 py-6"
+      title={isCollapsed ? (isDark ? "Light mode" : "Dark mode") : undefined}
+      className={`text-foreground hover:bg-accent w-full rounded-xl py-6 ${
+        isCollapsed ? "justify-center px-0" : "justify-start gap-3 px-3"
+      }`}
     >
-      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-      <span>{isDark ? "Light mode" : "Dark mode"}</span>
+      {isDark ? (
+        <Sun className="size-4 shrink-0" />
+      ) : (
+        <Moon className="size-4 shrink-0" />
+      )}
+
+      {!isCollapsed && <span>{isDark ? "Light mode" : "Dark mode"}</span>}
     </Button>
   );
 }

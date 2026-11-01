@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
-import { Navbar } from "@/components/dashboard/Navbar";
-import { Sidebar } from "@/components/dashboard/Sidebar";
+import { Navbar } from "@/components/dashboard/navbar";
+import { Sidebar } from "@/components/dashboard/side-bar";
 import { getUser } from "@/lib/auth";
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
@@ -17,7 +17,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="bg-background text-foreground grid min-h-screen grid-cols-[320px_minmax(0,1fr)]">
+    <div className="bg-background text-foreground grid min-h-screen grid-cols-[300px_minmax(0,1fr)]">
       <Sidebar profile={profile} />
 
       <div className="flex min-w-0 flex-col">

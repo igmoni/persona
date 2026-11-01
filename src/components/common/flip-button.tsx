@@ -46,7 +46,7 @@ const FlipButton = ({
   const back = variant === "primary" ? light : dark;
 
   const face =
-    "absolute inset-0 flex items-center justify-center gap-2 whitespace-nowrap rounded-full border px-5 py-2.5 font-semibold select-none";
+    "absolute inset-0 flex items-center justify-center gap-2 whitespace-nowrap rounded-full border dark:border-neutral-200/50 px-5 py-2.5 font-semibold select-none";
 
   const content = (
     <>

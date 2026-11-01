@@ -20,7 +20,7 @@ import {
 import { GoogleSvg } from "@/svgs/google-svg";
 
 import { Container } from "../common/Container";
-import { CustomButton } from "../common/custom-button";
+import { FlipButton } from "../common/flip-button";
 
 type AuthFormProps = {
   mode: "login" | "signup";
@@ -170,15 +170,15 @@ const AuthForm = ({ mode }: AuthFormProps) => {
           </div>
 
           {/* Google OAuth */}
-          <CustomButton
+          <FlipButton
             variant="secondary"
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="border-input bg-secondary text-secondary-foreground hover:bg-secondary/80 flex h-11 w-full items-center justify-center gap-3 rounded-md border text-sm font-medium transition-colors disabled:opacity-50"
+            className="w-full"
           >
             <GoogleSvg />
             {oauthLoading ? "Please wait..." : "Continue with Google"}
-          </CustomButton>
+          </FlipButton>
 
           {/* Divider */}
           <div className="text-muted-foreground my-6 flex items-center gap-3 text-xs">
@@ -246,17 +246,18 @@ const AuthForm = ({ mode }: AuthFormProps) => {
             </div>
 
             {/* Submit */}
-            <CustomButton
+            <FlipButton
               type="submit"
               disabled={loading}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-11 w-full items-center justify-center rounded-md px-4 text-sm font-medium transition-colors disabled:opacity-50"
+              className="w-full "
+              // className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-11 w-full items-center justify-center rounded-md px-4 text-sm font-medium transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? "Please wait..."
                 : isSignup
                   ? "Create account"
                   : "Log in"}
-            </CustomButton>
+            </FlipButton>
           </form>
         </div>
       </section>

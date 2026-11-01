@@ -2,7 +2,7 @@ import { Send, Share2 } from "lucide-react";
 
 import { jetbrainsMono } from "@/lib/font";
 
-import { CustomButton } from "../common/custom-button";
+import { FlipButton } from "../common/flip-button";
 
 const Navbar = () => {
   return (
@@ -13,17 +13,16 @@ const Navbar = () => {
         persona.com/igmoni
       </p>
       <div className="flex items-center gap-2">
-        <CustomButton className="flex gap-2 rounded-full py-5 text-sm">
+        <FlipButton >
           <Share2 className="size-4" />
           Share
-        </CustomButton>
-        <CustomButton
-          className="flex gap-2 rounded-full py-5 text-sm"
-          variant={"outline"}
+        </FlipButton>
+        <FlipButton
+          variant="secondary"
         >
           <Send className="size-4" />
           Publish your page
-        </CustomButton>
+        </FlipButton>
       </div>
     </header>
   );
